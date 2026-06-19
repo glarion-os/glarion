@@ -1,0 +1,15 @@
+[Unit]
+Description=Glarion ryzenadj TDP configuration
+Documentation=https://github.com/FlyGoat/RyzenAdj
+After=multi-user.target
+# Run after suspend/resume as well
+After=suspend.target hybrid-sleep.target hibernate.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ryzenadj-setup.sh
+RemainAfterExit=yes
+
+# Run again after resume from suspend
+[Install]
+WantedBy=multi-user.target suspend.target hybrid-sleep.target hibernate.target
