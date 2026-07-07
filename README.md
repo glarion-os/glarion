@@ -35,7 +35,7 @@ unless you have confirmed they have updated firmware for Linux compatibility.
 
 ```bash
 # From a running Fedora Kinoite system, rebase to Glarion:
-rpm-ostree rebase ostree-image-signed:docker://registry.gitlab.com/glarion/glarion:latest
+rpm-ostree rebase ostree-unverified-registry:ghcr.io/glarion-os/glarion:latest
 
 # Reboot to apply
 systemctl reboot
@@ -79,12 +79,14 @@ podman machine start
 Then build:
 
 ```bash
-git clone https://gitlab.com/glarion/glarion
+git clone https://github.com/glarion-os/glarion
 cd glarion
 podman build -f Containerfile -t glarion:local .
 ```
 
-Pushes to main trigger an automatic build via GitLab CI.
+Pushes to main trigger an automatic build via GitHub Actions, published to
+`ghcr.io/glarion-os/glarion`. A weekly scheduled build picks up upstream
+Kinoite updates.
 
 ## Contributing
 

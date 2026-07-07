@@ -1,0 +1,54 @@
+name: Build and Push OCI Image
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: glarion
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  FEDORA_MAJOR_VERSION: "44"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free up runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      - name: Login to GHCR
+        run: |
+          buildah login \
+            -u ${{ github.actor }} \
+            -p ${{ secrets.GITHUB_TOKEN }} \
+            ghcr.io
+
+      - name: Build
+        run: |
+          buildah build \
+            --build-arg FEDORA_MAJOR_VERSION=${FEDORA_MAJOR_VERSION} \
+            --squash-all \
+            -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest" \
+            -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:${FEDORA_MAJOR_VERSION}" \
+            -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}" \
+            -f Containerfile \
+            .
+
+      - name: Push
+        run: |
+          buildah push "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+          buildah push "${IMAGE_REGISTRY}/${IMAGE_NAME}:${FEDORA_MAJOR_VERSION}"
+          buildah push "${IMAGE_REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}"
