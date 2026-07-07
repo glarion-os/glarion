@@ -31,14 +31,14 @@ jobs:
 
       - name: Login to GHCR
         run: |
-          podman login \
+          sudo podman login \
             -u ${{ github.actor }} \
             -p ${{ secrets.GITHUB_TOKEN }} \
             ghcr.io
 
       - name: Build
         run: |
-          podman build \
+          sudo podman build \
             --build-arg FEDORA_MAJOR_VERSION=${FEDORA_MAJOR_VERSION} \
             --squash-all \
             -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest" \
@@ -49,6 +49,6 @@ jobs:
 
       - name: Push
         run: |
-          podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
-          podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:${FEDORA_MAJOR_VERSION}"
-          podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}"
+          sudo podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+          sudo podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:${FEDORA_MAJOR_VERSION}"
+          sudo podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}"
