@@ -7,6 +7,10 @@ on:
     - cron: '0 4 * * 1'
   workflow_dispatch:
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMAGE_NAME: glarion
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
@@ -40,7 +44,6 @@ jobs:
         run: |
           sudo podman build \
             --build-arg FEDORA_MAJOR_VERSION=${FEDORA_MAJOR_VERSION} \
-            --squash-all \
             -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest" \
             -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:${FEDORA_MAJOR_VERSION}" \
             -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}" \
