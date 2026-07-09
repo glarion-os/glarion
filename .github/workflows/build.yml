@@ -44,6 +44,9 @@ jobs:
         run: |
           sudo podman build \
             --build-arg FEDORA_MAJOR_VERSION=${FEDORA_MAJOR_VERSION} \
+            --layers \
+            --cache-from "${IMAGE_REGISTRY}/${IMAGE_NAME}-cache" \
+            --cache-to "${IMAGE_REGISTRY}/${IMAGE_NAME}-cache" \
             -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest" \
             -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:${FEDORA_MAJOR_VERSION}" \
             -t "${IMAGE_REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}" \

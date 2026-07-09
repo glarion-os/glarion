@@ -26,7 +26,7 @@ RUN rpm-ostree override remove \
 # ---------------------------------------------------------------------------
 
 RUN rpm-ostree install \
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+    https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
     && rpm-ostree cleanup -m
 
 RUN dnf5 -y copr enable ublue-os/bazzite
