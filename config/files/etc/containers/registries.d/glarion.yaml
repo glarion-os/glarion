@@ -1,0 +1,3 @@
+docker:
+  ghcr.io/glarion-os/glarion:
+    use-sigstore-attachments: true

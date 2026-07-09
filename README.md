@@ -36,8 +36,11 @@ unless you have confirmed they have updated firmware for Linux compatibility.
 ```bash
 # From a running Fedora Kinoite system, rebase to Glarion:
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/glarion-os/glarion:latest
+systemctl reboot
 
-# Reboot to apply
+# Then switch to the signed image (the first rebase installs Glarion's
+# signing key and policy; from here every update is signature-verified):
+rpm-ostree rebase ostree-image-signed:docker://ghcr.io/glarion-os/glarion:latest
 systemctl reboot
 ```
 

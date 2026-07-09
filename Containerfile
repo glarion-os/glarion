@@ -12,7 +12,7 @@ FROM ${BASE_IMAGE}:${FEDORA_MAJOR_VERSION}
 # ---------------------------------------------------------------------------
 LABEL org.opencontainers.image.title="Glarion"
 LABEL org.opencontainers.image.description="A polished Linux desktop OS with first-class gaming support"
-LABEL org.opencontainers.image.source="https://gitlab.com/glarion/glarion"
+LABEL org.opencontainers.image.source="https://github.com/glarion-os/glarion"
 
 # ---------------------------------------------------------------------------
 # Remove Kinoite defaults we don't want
@@ -84,6 +84,13 @@ RUN chmod +x /usr/local/bin/glarion-install-flatpaks.sh
 # just recipes (maintenance/utility commands available to the user)
 # ---------------------------------------------------------------------------
 COPY config/just/glarion.just /usr/share/ublue-os/just/60-glarion.just
+
+# ---------------------------------------------------------------------------
+# Image signature verification — updates must be signed with the Glarion key
+# ---------------------------------------------------------------------------
+COPY cosign.pub /etc/pki/containers/glarion.pub
+COPY config/files/etc/containers/policy.json /etc/containers/policy.json
+COPY config/files/etc/containers/registries.d/glarion.yaml /etc/containers/registries.d/glarion.yaml
 
 # ---------------------------------------------------------------------------
 # Finalise

@@ -52,6 +52,17 @@ jobs:
 
       - name: Push
         run: |
-          sudo podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+          sudo podman push --digestfile /tmp/image-digest "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
           sudo podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:${FEDORA_MAJOR_VERSION}"
           sudo podman push "${IMAGE_REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          COSIGN_PASSWORD: ""
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY "${IMAGE_REGISTRY}/${IMAGE_NAME}@$(cat /tmp/image-digest)"
