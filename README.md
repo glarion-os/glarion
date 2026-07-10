@@ -33,6 +33,29 @@ unless you have confirmed they have updated firmware for Linux compatibility.
 
 > Requires: Secure Boot disabled in BIOS
 
+### Fresh install
+
+Download the installer ISO (~6 GB) and verify it:
+
+```bash
+curl -LO https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/glarion-installer.iso
+curl -LO https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/SHA256SUMS
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+Write it to a USB stick of at least 8 GB (**this erases the stick** — find the
+device name with `lsblk`, or `diskutil list` on macOS):
+
+```bash
+sudo dd if=glarion-installer.iso of=/dev/sdX bs=4M status=progress oflag=direct
+```
+
+Fedora Media Writer or balenaEtcher work too. Boot from the stick and follow
+the installer; the installed system runs the signed Glarion image and receives
+updates automatically.
+
+### From an existing Fedora Kinoite system
+
 ```bash
 # From a running Fedora Kinoite system, rebase to Glarion:
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/glarion-os/glarion:latest
