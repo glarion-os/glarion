@@ -68,7 +68,7 @@ jobs:
           fi
           sudo chown -R "$(id -u):$(id -g)" dist
           cd dist
-          sha256sum glarion-* > SHA256SUMS
+          for f in glarion-*; do sha256sum "$f" > "$f.sha256"; done
           ls -lh
           df -h /
 
@@ -84,8 +84,4 @@ jobs:
           AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
         run: |
-          aws s3 cp dist/glarion-installer.iso "s3://${R2_BUCKET}/glarion-installer.iso" --endpoint-url "${R2_ENDPOINT}"
-          if [ -f dist/glarion-disk.qcow2 ]; then
-            aws s3 cp dist/glarion-disk.qcow2 "s3://${R2_BUCKET}/glarion-disk.qcow2" --endpoint-url "${R2_ENDPOINT}"
-          fi
-          aws s3 cp dist/SHA256SUMS "s3://${R2_BUCKET}/SHA256SUMS" --endpoint-url "${R2_ENDPOINT}"
+          aws s3 cp dist/ "s3://${R2_BUCKET}/" --recursive --endpoint-url "${R2_ENDPOINT}"

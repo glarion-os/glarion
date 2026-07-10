@@ -1,0 +1,60 @@
+name: Build Live ISO
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: build-live-iso
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: glarion
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  build-live-iso:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free up runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      - name: Build ISO
+        uses: ublue-os/titanoboa@v0.2
+        with:
+          image-ref: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          flatpaks-list: ${{ github.workspace }}/config/flatpaks.list
+          iso-dest: ${{ github.workspace }}/glarion-live.iso
+
+      - name: Generate checksum
+        run: |
+          mkdir -p dist
+          mv glarion-live.iso dist/
+          cd dist
+          sha256sum glarion-live.iso > glarion-live.iso.sha256
+          ls -lh
+          df -h /
+
+      - name: Upload to R2
+        # Skipped when the R2 secrets are not configured, so the ISO build
+        # itself can be exercised before the bucket exists.
+        if: env.R2_BUCKET != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+        run: |
+          aws s3 cp dist/ "s3://${R2_BUCKET}/" --recursive --endpoint-url "${R2_ENDPOINT}"
