@@ -1,0 +1,90 @@
+name: Build Installer ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-qcow2:
+        description: "Also build a qcow2 disk image for VM testing"
+        type: boolean
+        default: false
+
+concurrency:
+  group: build-iso
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: glarion
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  BIB_IMAGE: quay.io/centos-bootc/bootc-image-builder:latest
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Free up runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      - name: Pull image
+        run: sudo podman pull "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+
+      - name: Build ISO
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged \
+            --security-opt label=type:unconfined_t \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            "${BIB_IMAGE}" \
+            --type anaconda-iso \
+            --rootfs btrfs \
+            "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+
+      - name: Build qcow2
+        if: inputs.build-qcow2
+        run: |
+          sudo podman run --rm --privileged \
+            --security-opt label=type:unconfined_t \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            "${BIB_IMAGE}" \
+            --type qcow2 \
+            --rootfs btrfs \
+            "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+
+      - name: Collect artifacts and generate checksums
+        run: |
+          mkdir -p dist
+          sudo mv output/bootiso/install.iso dist/glarion-installer.iso
+          if [ -f output/qcow2/disk.qcow2 ]; then
+            sudo mv output/qcow2/disk.qcow2 dist/glarion-disk.qcow2
+          fi
+          sudo chown -R "$(id -u):$(id -g)" dist
+          cd dist
+          sha256sum glarion-* > SHA256SUMS
+          ls -lh
+          df -h /
+
+      - name: Upload to R2
+        # Skipped when the R2 secrets are not configured, so the ISO build
+        # itself can be exercised before the bucket exists.
+        if: secrets.R2_BUCKET != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          aws s3 cp dist/glarion-installer.iso "s3://${R2_BUCKET}/glarion-installer.iso" --endpoint-url "${R2_ENDPOINT}"
+          if [ -f dist/glarion-disk.qcow2 ]; then
+            aws s3 cp dist/glarion-disk.qcow2 "s3://${R2_BUCKET}/glarion-disk.qcow2" --endpoint-url "${R2_ENDPOINT}"
+          fi
+          aws s3 cp dist/SHA256SUMS "s3://${R2_BUCKET}/SHA256SUMS" --endpoint-url "${R2_ENDPOINT}"
