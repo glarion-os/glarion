@@ -33,24 +33,40 @@ unless you have confirmed they have updated firmware for Linux compatibility.
 
 > Requires: Secure Boot disabled in BIOS
 
-### Fresh install
+### Try it live (recommended)
 
-Download the installer ISO (~6 GB) and verify it:
+The live ISO boots a full Glarion session — desktop, Steam, the lot — straight
+from a USB stick without touching your disks. Download and verify it:
+
+```bash
+curl -LO https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/glarion-live.iso
+curl -LO https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/glarion-live.iso.sha256
+sha256sum -c glarion-live.iso.sha256
+```
+
+Write it to a USB stick of at least 16 GB (**this erases the stick** — find
+the device name with `lsblk`, or `diskutil list` on macOS):
+
+```bash
+sudo dd if=glarion-live.iso of=/dev/sdX bs=4M status=progress oflag=direct
+```
+
+Fedora Media Writer or balenaEtcher work too. Boot from the stick and try
+Glarion; the session runs entirely from the USB stick and leaves the
+machine's disks untouched.
+
+### Fresh install (unattended)
+
+For provisioning a machine hands-off, the installer ISO installs Glarion
+without any interaction:
 
 ```bash
 curl -LO https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/glarion-installer.iso
-curl -LO https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/SHA256SUMS
-sha256sum -c SHA256SUMS --ignore-missing
+curl -LO https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/glarion-installer.iso.sha256
+sha256sum -c glarion-installer.iso.sha256
 ```
 
-Write it to a USB stick of at least 8 GB (**this erases the stick** — find the
-device name with `lsblk`, or `diskutil list` on macOS):
-
-```bash
-sudo dd if=glarion-installer.iso of=/dev/sdX bs=4M status=progress oflag=direct
-```
-
-Fedora Media Writer or balenaEtcher work too.
+Write it to a USB stick as above.
 
 > **Warning:** the installer is unattended. Booting from the stick erases the
 > machine's first disk and installs Glarion onto it without asking. Only boot
