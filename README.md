@@ -50,9 +50,14 @@ device name with `lsblk`, or `diskutil list` on macOS):
 sudo dd if=glarion-installer.iso of=/dev/sdX bs=4M status=progress oflag=direct
 ```
 
-Fedora Media Writer or balenaEtcher work too. Boot from the stick and follow
-the installer; the installed system runs the signed Glarion image and receives
-updates automatically.
+Fedora Media Writer or balenaEtcher work too.
+
+> **Warning:** the installer is unattended. Booting from the stick erases the
+> machine's first disk and installs Glarion onto it without asking. Only boot
+> it on a machine you intend to wipe.
+
+The installed system runs the signed Glarion image and receives updates
+automatically.
 
 ### From an existing Fedora Kinoite system
 
