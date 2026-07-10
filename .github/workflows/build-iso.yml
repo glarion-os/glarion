@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
 
     steps:
       - name: Free up runner disk space
@@ -73,7 +75,7 @@ jobs:
       - name: Upload to R2
         # Skipped when the R2 secrets are not configured, so the ISO build
         # itself can be exercised before the bucket exists.
-        if: secrets.R2_BUCKET != ''
+        if: env.R2_BUCKET != ''
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -81,7 +83,6 @@ jobs:
           AWS_REQUEST_CHECKSUM_CALCULATION: when_required
           AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-          R2_BUCKET: ${{ secrets.R2_BUCKET }}
         run: |
           aws s3 cp dist/glarion-installer.iso "s3://${R2_BUCKET}/glarion-installer.iso" --endpoint-url "${R2_ENDPOINT}"
           if [ -f dist/glarion-disk.qcow2 ]; then
