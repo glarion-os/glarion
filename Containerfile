@@ -77,6 +77,7 @@ RUN systemctl enable ryzenadj.service
 # ---------------------------------------------------------------------------
 # Flatpak setup (runs at first boot via a systemd oneshot)
 # ---------------------------------------------------------------------------
+COPY config/flatpaks.list /usr/share/glarion/flatpaks.list
 COPY config/scripts/install-flatpaks.sh /usr/local/bin/glarion-install-flatpaks.sh
 RUN chmod +x /usr/local/bin/glarion-install-flatpaks.sh
 
