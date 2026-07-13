@@ -29,12 +29,34 @@ jobs:
           sudo docker image prune -af
           df -h /
 
-      - name: Build ISO
-        uses: ublue-os/titanoboa@v0.2
+      - name: Checkout Titanoboa
+        uses: actions/checkout@v4
         with:
-          image-ref: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          flatpaks-list: ${{ github.workspace }}/config/flatpaks.list
-          iso-dest: ${{ github.workspace }}/glarion-live.iso
+          repository: ublue-os/titanoboa
+          ref: 840217d97bd0bc9a52466508c54d8dda5c5ba2fd # v0.2
+          path: titanoboa
+
+      # Titanoboa v0.2's action installs the latest just, but its Justfile
+      # only parses with just <= 1.51 (1.52 gated which() behind `set lists`),
+      # so run the same build with a pinned just instead of using the action.
+      - name: Install just
+        run: |
+          curl -sL https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-x86_64-unknown-linux-musl.tar.gz | tar -xz just
+          sudo mv just /usr/local/bin/just
+
+      - name: Build ISO
+        working-directory: titanoboa
+        run: |
+          sudo \
+            PATH="$PATH" \
+            CI=true \
+            HOOK_post_rootfs= \
+            HOOK_pre_initramfs= \
+            TITANOBOA_BUILDER_DISTRO=fedora \
+            just build \
+            "${IMAGE_REGISTRY}/${IMAGE_NAME}:latest" 1 "${GITHUB_WORKSPACE}/config/flatpaks.list" squashfs '' '' 1
+          sudo chown "$(id -u):$(id -g)" output.iso
+          mv output.iso "${GITHUB_WORKSPACE}/glarion-live.iso"
 
       - name: Generate checksum
         run: |
