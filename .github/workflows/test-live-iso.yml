@@ -27,7 +27,7 @@ jobs:
       - name: Install QEMU
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 ovmf socat
+          sudo apt-get install -y qemu-system-x86 ovmf socat imagemagick
           sudo chmod 666 /dev/kvm
           ls -l /dev/kvm
 
@@ -57,10 +57,12 @@ jobs:
             -serial file:shots/serial.log \
             -monitor unix:/tmp/qemu-mon.sock,server,nowait \
             -daemonize
+          # qemu -daemonize changes its working directory to /, so screendump
+          # needs absolute paths
           for t in 30 60 120 180 300 420 600; do
             sleep_for=$(( t - SECONDS ))
             [ "$sleep_for" -gt 0 ] && sleep "$sleep_for"
-            echo "screendump shots/boot-${t}s.ppm" | socat - UNIX-CONNECT:/tmp/qemu-mon.sock
+            echo "screendump ${PWD}/shots/boot-${t}s.ppm" | socat - UNIX-CONNECT:/tmp/qemu-mon.sock
             sleep 2
           done
           echo "quit" | socat - UNIX-CONNECT:/tmp/qemu-mon.sock || true
@@ -68,6 +70,7 @@ jobs:
             convert "$f" "${f%.ppm}.png" && rm "$f"
           done
           ls -lh shots/
+          ls shots/*.png >/dev/null
 
       - name: Upload results
         if: always()
