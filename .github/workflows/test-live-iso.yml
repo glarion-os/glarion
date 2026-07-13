@@ -1,0 +1,76 @@
+name: Test Live ISO Boot
+
+on:
+  workflow_dispatch:
+    inputs:
+      iso-url:
+        description: "URL of the ISO to boot-test"
+        default: "https://pub-27e8de4c5aa14382b04372b8f9be06a2.r2.dev/glarion-live.iso"
+
+concurrency:
+  group: test-live-iso
+  cancel-in-progress: true
+
+jobs:
+  boot-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Free up runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 ovmf socat
+          ls -l /dev/kvm
+
+      - name: Download ISO
+        run: |
+          curl -sfL "${{ inputs.iso-url }}" -o live.iso
+          curl -sfL "${{ inputs.iso-url }}.sha256" -o live.iso.sha256 || true
+          if [ -s live.iso.sha256 ]; then
+            echo "$(awk '{print $1}' live.iso.sha256)  live.iso" | sha256sum -c -
+          fi
+          ls -lh live.iso
+
+      - name: Boot ISO and capture screenshots
+        run: |
+          mkdir -p shots
+          qemu-system-x86_64 \
+            -enable-kvm \
+            -machine q35 \
+            -cpu host \
+            -smp 4 \
+            -m 8192 \
+            -bios /usr/share/ovmf/OVMF.fd \
+            -vga virtio \
+            -display none \
+            -cdrom live.iso \
+            -boot d \
+            -serial file:shots/serial.log \
+            -monitor unix:/tmp/qemu-mon.sock,server,nowait \
+            -daemonize
+          for t in 30 60 120 180 300 420 600; do
+            sleep_for=$(( t - SECONDS ))
+            [ "$sleep_for" -gt 0 ] && sleep "$sleep_for"
+            echo "screendump shots/boot-${t}s.ppm" | socat - UNIX-CONNECT:/tmp/qemu-mon.sock
+            sleep 2
+          done
+          echo "quit" | socat - UNIX-CONNECT:/tmp/qemu-mon.sock || true
+          for f in shots/*.ppm; do
+            convert "$f" "${f%.ppm}.png" && rm "$f"
+          done
+          ls -lh shots/
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-screenshots
+          path: shots/
