@@ -75,7 +75,8 @@ RUN chmod +x /usr/local/bin/ryzenadj-setup.sh
 RUN systemctl enable ryzenadj.service
 
 # ---------------------------------------------------------------------------
-# Flatpak setup (runs at first boot via a systemd oneshot)
+# Flatpak demo set (preloaded on the live ISO; manual via just install-flatpaks)
+# Installed systems ship without preinstalled apps by design.
 # ---------------------------------------------------------------------------
 COPY config/flatpaks.list /usr/share/glarion/flatpaks.list
 COPY config/scripts/install-flatpaks.sh /usr/local/bin/glarion-install-flatpaks.sh

@@ -1,8 +1,8 @@
 #!/bin/bash
 # install-flatpaks.sh
-# Installs default Flatpaks for Glarion
-# This runs at first boot or can be triggered manually via:
-#   just install-flatpaks
+# Installs the Glarion demo Flatpaks (the set preloaded on the live ISO).
+# Manual only, via: just install-flatpaks
+# Installed systems ship clean; app selection happens in first-boot setup.
 
 set -euo pipefail
 
