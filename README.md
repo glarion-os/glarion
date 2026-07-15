@@ -90,7 +90,11 @@ systemctl reboot
 
 ## Updating
 
-Updates apply automatically on reboot. To check for and stage an update manually:
+Glarion checks for updates in the background, downloads them, and stages them
+automatically; the staged update applies the next time the machine reboots.
+No commands, no prompts.
+
+To check for and stage an update immediately instead of waiting:
 
 ```bash
 just update

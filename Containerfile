@@ -70,9 +70,14 @@ COPY config/scripts/ryzenadj-setup.sh /usr/local/bin/ryzenadj-setup.sh
 RUN chmod +x /usr/local/bin/ryzenadj-setup.sh
 
 # ---------------------------------------------------------------------------
+# Automatic updates: stage in the background, apply on next reboot
+# ---------------------------------------------------------------------------
+COPY config/files/etc/rpm-ostreed.conf /etc/rpm-ostreed.conf
+
+# ---------------------------------------------------------------------------
 # Enable systemd services
 # ---------------------------------------------------------------------------
-RUN systemctl enable ryzenadj.service
+RUN systemctl enable ryzenadj.service rpm-ostreed-automatic.timer
 
 # ---------------------------------------------------------------------------
 # Flatpak demo set (preloaded on the live ISO; manual via just install-flatpaks)
