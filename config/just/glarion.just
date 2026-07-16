@@ -1,10 +1,10 @@
 # Glarion just recipes
-# Available via: just <recipe-name>
-# List all recipes: just --list
+# Available via: ujust <recipe-name>
+# List all recipes: ujust --list
 
-# Install default Flatpaks
+# Install the Glarion demo Flatpaks
 install-flatpaks:
-    echo "Installing Glarion default Flatpaks..."
+    echo "Installing Glarion demo Flatpaks..."
     /usr/local/bin/glarion-install-flatpaks.sh
 
 # Show current TDP configuration
@@ -26,11 +26,6 @@ gpu-info:
     cat /sys/class/drm/card*/device/power_dpm_state 2>/dev/null || true
     cat /sys/class/drm/card*/device/power_dpm_force_performance_level 2>/dev/null || true
 
-# Update the OS (pulls latest OCI image, applies on reboot)
-update:
-    echo "Checking for Glarion updates..."
-    rpm-ostree update
-
 # Roll back to previous OS version
 rollback:
     echo "Rolling back to previous Glarion version..."
@@ -42,4 +37,4 @@ status:
 
 # Open Glarion issue tracker
 feedback:
-    xdg-open "https://gitlab.com/glarion/glarion/-/issues"
+    xdg-open "https://github.com/glarion-os/glarion/issues"

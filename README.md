@@ -94,26 +94,26 @@ Glarion checks for updates in the background, downloads them, and stages them
 automatically; the staged update applies the next time the machine reboots.
 No commands, no prompts.
 
-To check for and stage an update immediately instead of waiting:
+To update everything immediately instead of waiting (OS, Flatpaks, containers):
 
 ```bash
-just update
+ujust update
 ```
 
 To roll back to the previous version:
 
 ```bash
-just rollback
+ujust rollback
 ```
 
 ## Useful commands
 
 ```bash
-just --list          # Show all available commands
-just show-tdp        # Show current TDP configuration
-just apply-tdp       # Re-apply TDP configuration manually
-just gpu-info        # Show GPU status
-just status          # Show OS version and update status
+ujust --list          # Show all available commands
+ujust show-tdp        # Show current TDP configuration
+ujust apply-tdp       # Re-apply TDP configuration manually
+ujust gpu-info        # Show GPU status
+ujust status          # Show OS version and update status
 ```
 
 ## Building from source

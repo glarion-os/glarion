@@ -90,7 +90,8 @@ RUN chmod +x /usr/local/bin/glarion-install-flatpaks.sh
 # ---------------------------------------------------------------------------
 # just recipes (maintenance/utility commands available to the user)
 # ---------------------------------------------------------------------------
-COPY config/just/glarion.just /usr/share/ublue-os/just/60-glarion.just
+# The base's master justfile imports exactly this filename
+COPY config/just/glarion.just /usr/share/ublue-os/just/60-custom.just
 
 # ---------------------------------------------------------------------------
 # Image signature verification — updates must be signed with the Glarion key
